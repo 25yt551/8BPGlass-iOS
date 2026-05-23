@@ -1,0 +1,35 @@
+name: Build IPA
+
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Xcode project
+        run: |
+          swift package init --type executable --name 8BPGlass
+          # Or use xcodegen if you have a project.yml
+          # For now, just list files
+          echo "Need Xcode project setup"
+
+      - name: Archive
+        run: |
+          xcodebuild -project 8BPGlass.xcodeproj \
+            -scheme 8BPGlass \
+            -archivePath build/8BPGlass.xcarchive archive
+
+      - name: Export IPA
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/8BPGlass.xcarchive \
+            -exportPath build/ \
+            -exportOptionsPlist ExportOptions.plist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 8BPGlass.ipa
+          path: build/*.ipa
